@@ -72,7 +72,7 @@ MFC application for easier searching and organising of folders and files
   
   Primjer:
   
- * U Shell view kontroli možemo vidjeti da imamo prazan folder Munchkin, u folderu Mice.
+ * U Shell view kontroli možemo vidjeti da imamo prazan folder "Munchkin", u folderu "Mice".
   Taj folder ćemo upotrijebiti kao mjesto gdje se spremaju rezultati pretrage, tako da stisnemo gumb foldera sa povećalom i odaberemo ga iz dijaloga.
   
 
@@ -80,16 +80,16 @@ MFC application for easier searching and organising of folders and files
   <img src="https://www.linkpicture.com/q/9_36.png" />
   </p>
   
-*  Ako pritisnemo folder mice, možemo vidjeti da se u njemu nalaze različite slike mačaka, različitih vrsta, mi želimo u naš folder "Munchkin" kopirati
+*  Ako pritisnemo folder "Mice", možemo vidjeti da se u njemu nalaze različite slike mačaka, različitih vrsta, mi želimo u naš folder "Munchkin" kopirati
   samo one slike koje u imenu imaju ključnu riječ "munchkin".
-  Označavamo folder kvačicom iz kojega kopiramo, "Mice" i unosimo ključnu riječ "munchkin".
+  Označavamo kvačicom folder iz kojega želimo kopirati ("Mice") i unosimo ključnu riječ "munchkin".
   Pritisne se gumb "Copy them" za kopiranje.
    <p align="center">
   <img src="https://www.linkpicture.com/q/11_30.png" />
   </p>
   
 *  Kopiranje je uspješno jer pored gumba "Copy them!" piše "SUCCESS", pritiskom na folder "Munchkin" možemo vidjeti da su se sve datoteke koje sadržavaju ključnu riječ
-  prekopirale u naš željeni folder.
+  kopirale u naš željeni folder.
   
  <p align="center">
   <img src="https://www.linkpicture.com/q/12_34.png" />
