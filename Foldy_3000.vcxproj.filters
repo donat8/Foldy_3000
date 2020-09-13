@@ -59,5 +59,8 @@
     <Image Include="res\Foldy_3000.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="foldy.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

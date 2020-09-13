@@ -69,9 +69,6 @@ void CFoldy3000Dlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_MFCSHELLTREE1, shell_tree);
 	DDX_Control(pDX, IDC_MFCSHELLLIST3, shell_list);
 
-	DDX_Control(pDX, IDC_MFCEDITBROWSE3, copy_to);
-
-
 }
 
 BEGIN_MESSAGE_MAP(CFoldy3000Dlg, CDialogEx)
@@ -112,9 +109,10 @@ BOOL CFoldy3000Dlg::OnInitDialog()
 	}
 
 	// Set the icon for this dialog.  The framework does this automatically
-	//  when the application's main window is not a dialog
-	SetIcon(m_hIcon, TRUE);			// Set big icon
-	SetIcon(m_hIcon, FALSE);		// Set small icon
+	//  when the application's main window is not a dialog	
+	HICON hIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ICON1));
+	SetIcon(hIcon, FALSE);     // Set small icon
+	SetIcon(hIcon, TRUE);    // Set big icon
 
 	// TODO: Add extra initialization here
 
@@ -262,20 +260,24 @@ void CFoldy3000Dlg::Get_All_File_Paths(LPCTSTR pstr)
 void CFoldy3000Dlg::CopyFilesToFolder() {
 
 	std::wstring path_to_copy(path_to.GetString());
-
-	 for (int i = 0; i < all_Paths.GetCount(); i++) {
-	 	std::wstring path_in(all_Paths[i].GetString());
-	 	SHCopy(path_in, path_to_copy);
-		//all_Paths.RemoveAt(i);
-	 }
-	 for (int i = 0; i < all_files_paths.GetCount(); i++) {
-	 	std::wstring all_files_path_temp(all_files_paths[i].GetString());
-	 	SHCopy(all_files_path_temp, path_to_copy);
-	 }
-	 all_Paths.RemoveAll();
-	 all_files_paths.RemoveAll();
-	 checkedItems.RemoveAll();
-	 SetDlgItemText(IDC_EDIT1, L"");
+	if (all_Paths.IsEmpty() && all_files_paths.IsEmpty())
+		SetDlgItemText(IDC_STATIC_SUCCESS, L"Copying failed!");
+	else {
+    	for (int i = 0; i < all_Paths.GetCount(); i++) {
+    		std::wstring path_in(all_Paths[i].GetString());
+    		SHCopy(path_in, path_to_copy);
+    		//all_Paths.RemoveAt(i);
+    	}
+    	for (int i = 0; i < all_files_paths.GetCount(); i++) {
+    		std::wstring all_files_path_temp(all_files_paths[i].GetString());
+    		SHCopy(all_files_path_temp, path_to_copy);
+    	}
+    	all_Paths.RemoveAll();
+    	all_files_paths.RemoveAll();
+    	checkedItems.RemoveAll();
+    	SetDlgItemText(IDC_EDIT1, L"");
+		SetDlgItemText(IDC_STATIC_SUCCESS, L"SUCCESS!!");
+	}
 }
 
 
@@ -300,7 +302,7 @@ void CFoldy3000Dlg::OnBnClickedButton1()
 		SetDlgItemText(IDC_STATIC_KEYWORD, L"Need a search string!");
 	else{
 		SetDlgItemText(IDC_STATIC_TREE, L"");
-		SetDlgItemText(IDC_STATIC_FOLDER, L"");
+		SetDlgItemText(IDC_STATIC_FOLDER, L""); 
 		SetDlgItemText(IDC_STATIC_KEYWORD, L"");
 		SearchTrough();
 		CopyFilesToFolder();

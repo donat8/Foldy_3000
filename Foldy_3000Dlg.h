@@ -47,22 +47,25 @@ public:
 
 	TCHAR buffer[256];
 
-	void SearchTrough();
-	void Get_All_File_Paths(LPCTSTR pstr);
-	void CopyFilesToFolder();
+
 
 	CString search_string;
+	afx_msg void OnEnChangeEdit1();
 	CString path_to;
+	afx_msg void OnEnChangeMfceditbrowse3();
 
+	void SearchTrough();
+	void Get_All_File_Paths(LPCTSTR pstr);
+	
 	CArray<CString> all_Paths;
 	CArray<CString> all_files_paths;
 
-	afx_msg void OnEnChangeMfceditbrowse3();
-	CMFCEditBrowseCtrl copy_to;
+	//copy btn
 	afx_msg void OnBnClickedButton1();
+	void CopyFilesToFolder();
 	bool SHCopy(std::wstring& from, std::wstring& to);
 	
 	
-	afx_msg void OnEnChangeEdit1();
+	
 	
 };
