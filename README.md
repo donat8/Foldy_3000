@@ -84,7 +84,8 @@ MFC application for easier searching and organising of folders and files
   samo one slike koje u imenu imaju ključnu riječ "munchkin".
   Označavamo kvačicom folder iz kojega želimo kopirati ("Mice") i unosimo ključnu riječ "munchkin".
   Pritisne se gumb "Copy them" za kopiranje.
-   <p align="center">
+  
+  <p align="center">
   <img src="https://www.linkpicture.com/q/11_30.png" />
   </p>
   
