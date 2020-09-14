@@ -6,6 +6,11 @@
 #define IDD_ABOUTBOX                    100
 #define IDS_ABOUTBOX                    101
 #define IDD_FOLDY_3000_DIALOG           102
+#define KEYWORD_ERROR                   102
+#define FOLDER_ERROR                    103
+#define CHECKING_ERROR                  104
+#define COPY_FAILED                     105
+#define COPY_SUCCESS                    106
 #define IDI_ICON1                       128
 #define IDR_MAINFRAME                   131
 #define IDC_MFCSHELLTREE1               1001

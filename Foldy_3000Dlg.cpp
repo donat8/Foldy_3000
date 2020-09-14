@@ -8,13 +8,11 @@
 #include "Foldy_3000Dlg.h"
 #include "afxdialogex.h"
 
-#include <fstream>
 
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-#include <filesystem>
 
 
 
@@ -75,10 +73,7 @@ BEGIN_MESSAGE_MAP(CFoldy3000Dlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-ON_NOTIFY(NM_CLICK, IDC_MFCSHELLTREE1, &CFoldy3000Dlg::OnNMClickMfcshelltree1)
-ON_EN_CHANGE(IDC_MFCEDITBROWSE3, &CFoldy3000Dlg::OnEnChangeMfceditbrowse3)
 ON_BN_CLICKED(IDC_BUTTON1, &CFoldy3000Dlg::OnBnClickedButton1)
-ON_EN_CHANGE(IDC_EDIT1, &CFoldy3000Dlg::OnEnChangeEdit1)
 END_MESSAGE_MAP()
 
 
@@ -113,6 +108,14 @@ BOOL CFoldy3000Dlg::OnInitDialog()
 	HICON hIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_ICON1));
 	SetIcon(hIcon, FALSE);     // Set small icon
 	SetIcon(hIcon, TRUE);    // Set big icon
+	//postavlja fileove odabranog foldera u shell list
+	shell_tree.SetRelatedList(&shell_list);
+	
+	KeywordError.LoadStringW(KEYWORD_ERROR);
+	FolderError.LoadStringW(FOLDER_ERROR);
+	CheckingError.LoadStringW(CHECKING_ERROR);
+	CopyFailed.LoadStringW(COPY_FAILED);
+	CopySuccess.LoadStringW(COPY_SUCCESS);
 
 	// TODO: Add extra initialization here
 
@@ -171,7 +174,7 @@ HCURSOR CFoldy3000Dlg::OnQueryDragIcon()
 
 
 //dobavlja sve foldere koji su oznaceni sa kvacicom
-void CFoldy3000Dlg::GetCheckedItems(const CTreeCtrl& tree, CArray<HTREEITEM>* checkedItems, HTREEITEM startItem)
+std::vector<HTREEITEM> CFoldy3000Dlg::GetCheckedItems(const CTreeCtrl& tree, std::vector<HTREEITEM>& checkedItems, HTREEITEM startItem)
 {
 	if (startItem == NULL)
 		startItem = tree.GetRootItem();
@@ -181,45 +184,39 @@ void CFoldy3000Dlg::GetCheckedItems(const CTreeCtrl& tree, CArray<HTREEITEM>* ch
 		UINT state = (tree.GetItemState(item, TVIS_STATEIMAGEMASK) >> 12) & 15;
 
 		// je li chekirano
-		if (state == 2) {	
-			checkedItems->Add(item);
+		if (state == 2) {
+			checkedItems.push_back(item);
 		}
-		
 		// pretrazuje djecu
 		HTREEITEM child = tree.GetNextItem(item, TVGN_CHILD);
 
 		if (child != NULL)
 			GetCheckedItems(tree, checkedItems, child);
 	}
+	return checkedItems;
 }
-
-
-void CFoldy3000Dlg::OnNMClickMfcshelltree1(NMHDR* pNMHDR, LRESULT* pResult)
-{
-	*pResult = 0;
-	//postavlja fileove odabranog foldera u shell list
-	shell_tree.SetRelatedList(&shell_list);
-}
-
 
 //pretrazuje chekirane foldere i fileove usporedjuje sa search_stringom i sprema ih u all_paths niz
-void CFoldy3000Dlg::SearchTrough() {
+void CFoldy3000Dlg::SearchTrough(std::vector<HTREEITEM>& checkedItems) {
 
 	//temp var za path filea koji smo chekirali
 	CString strPath;
+
 	
 	//chekira foldere
-	for (int i = 0; i < checkedItems.GetCount(); i++) {
+	for (int i = 0; i < checkedItems.size(); i++) {
 		CString text = shell_tree.GetItemText(checkedItems[i]);
 		shell_tree.GetItemPath(strPath, checkedItems[i]);
 
 		//ako mozda neki od oznacenih foldera sadrzi keyword
 		if (text.Find(search_string)!=std::string::npos){
-			all_Paths.Add(strPath);
+			std::wstring foundFolderByString(strPath);
+			paths_in.push_back(foundFolderByString);
 		}
 		//chekira fileove
 		Get_All_File_Paths(strPath);
 	}	
+
 }
 
 //dobavlja sve fileove iz oznacenih foldera koji odgovaraju search_stringu
@@ -239,9 +236,10 @@ void CFoldy3000Dlg::Get_All_File_Paths(LPCTSTR pstr)
 		bWorking = finder.FindNextFile();
 
 		//GetFileName da se moze pretrazivati sa ekstenzijom
-		if (finder.GetFileName().Find(search_string) != std::string::npos)
-			all_files_paths.Add(finder.GetFilePath());
-
+		if (finder.GetFileName().Find(search_string) != std::string::npos){
+			std::wstring FilePaths(finder.GetFilePath());
+			paths_in.push_back(FilePaths);
+		}
 		//preskace se . i .. zbog beskonacne rekurzije
 		if (finder.IsDots())
 			continue;
@@ -257,55 +255,48 @@ void CFoldy3000Dlg::Get_All_File_Paths(LPCTSTR pstr)
 }
 
 //kopiranje u novi zadani folder
-void CFoldy3000Dlg::CopyFilesToFolder() {
+void CFoldy3000Dlg::CopyFilesToFolder(std::vector<std::wstring> paths_in, std::wstring path_to) {
 
-	std::wstring path_to_copy(path_to.GetString());
-	if (all_Paths.IsEmpty() && all_files_paths.IsEmpty())
-		SetDlgItemText(IDC_STATIC_SUCCESS, L"Copying failed!");
+	if (paths_in.empty())
+		SetDlgItemText(IDC_STATIC_SUCCESS, CopyFailed);
 	else {
-    	for (int i = 0; i < all_Paths.GetCount(); i++) {
-    		std::wstring path_in(all_Paths[i].GetString());
-    		SHCopy(path_in, path_to_copy);
-    		//all_Paths.RemoveAt(i);
+    	for (int i = 0; i < paths_in.size(); i++) {
+    		if(SHCopy(paths_in[i], path_to)==false)
+				SetDlgItemText(IDC_STATIC_SUCCESS, CopyFailed);
     	}
-    	for (int i = 0; i < all_files_paths.GetCount(); i++) {
-    		std::wstring all_files_path_temp(all_files_paths[i].GetString());
-    		SHCopy(all_files_path_temp, path_to_copy);
-    	}
-    	all_Paths.RemoveAll();
-    	all_files_paths.RemoveAll();
-    	checkedItems.RemoveAll();
     	SetDlgItemText(IDC_EDIT1, L"");
-		SetDlgItemText(IDC_STATIC_SUCCESS, L"SUCCESS!!");
+		SetDlgItemText(IDC_STATIC_SUCCESS, CopySuccess);
 	}
 }
-
-
-void CFoldy3000Dlg::OnEnChangeMfceditbrowse3()
-{
-	//kopira tekst EDIT BROWSE kontrole, oliti, potreban path za postojeci folder
-	GetDlgItemTextW(IDC_MFCEDITBROWSE3,path_to);
-}
-
 
 // COPY button
 void CFoldy3000Dlg::OnBnClickedButton1()
 {	
-	checkedItems.RemoveAll();
-	GetCheckedItems(shell_tree, &checkedItems);
+	//sprema path_to
+	CString path_to;
+	GetDlgItemTextW(IDC_MFCEDITBROWSE3, path_to);
+	std::wstring path_to_w(path_to.GetString());
 
-	if (checkedItems.IsEmpty()) {
-		SetDlgItemText(IDC_STATIC_TREE, L"No folders checked!");	}
-	else if (path_to.IsEmpty()) {
-		SetDlgItemText(IDC_STATIC_FOLDER, L"Choose a folder!");	}
+	//sprema keyword
+	GetDlgItemText(IDC_EDIT1, search_string);
+
+	//trazi chekirane iteme
+	std::vector<HTREEITEM> checkedItems;
+	checkedItems= GetCheckedItems(shell_tree, checkedItems);
+
+	if (checkedItems.empty()) {
+		SetDlgItemText(IDC_STATIC_TREE, CheckingError);	}
+	else if (path_to_w.empty()) {
+		SetDlgItemText(IDC_STATIC_FOLDER, FolderError);	}
 	else if (search_string.IsEmpty())
-		SetDlgItemText(IDC_STATIC_KEYWORD, L"Need a search string!");
+		SetDlgItemText(IDC_STATIC_KEYWORD, KeywordError);
 	else{
 		SetDlgItemText(IDC_STATIC_TREE, L"");
 		SetDlgItemText(IDC_STATIC_FOLDER, L""); 
 		SetDlgItemText(IDC_STATIC_KEYWORD, L"");
-		SearchTrough();
-		CopyFilesToFolder();
+		SearchTrough(checkedItems);
+		CopyFilesToFolder(paths_in, path_to_w);
+		paths_in.clear();
 	}
 }
 
@@ -329,13 +320,13 @@ bool CFoldy3000Dlg::SHCopy(std::wstring& from, std::wstring& to)
 	s.fFlags = FOF_NOCONFIRMMKDIR;
 	s.pTo = tf;
 	s.pFrom = sf;
-	SHFileOperation(&s);
+	if (SHFileOperation(&s) == 0)
+		return true;
+	else
+		return false;
+	return false;
 }
 
-//sprema promjenu teksta u varijablu search_string
-void CFoldy3000Dlg::OnEnChangeEdit1()
-{
-	GetDlgItemText(IDC_EDIT1,search_string);
-}
+
 
 

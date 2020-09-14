@@ -5,7 +5,7 @@
 #pragma once
 #include <afxShellListCtrl.h>
 #include <string>
-#include <iostream>
+#include <vector>
 
 
 // CFoldy3000Dlg dialog
@@ -38,34 +38,29 @@ protected:
 public:
 	CMFCShellTreeCtrl shell_tree;
 	CMFCShellListCtrl shell_list;
-	void GetCheckedItems(const CTreeCtrl& tree, CArray<HTREEITEM>* checkedItems, HTREEITEM startItem = NULL);
-	CArray<HTREEITEM> checkedItems;
+
+	std::vector<HTREEITEM> GetCheckedItems(const CTreeCtrl& tree, std::vector<HTREEITEM>& checkedItems, HTREEITEM startItem=NULL);
+
+	void SearchTrough(std::vector<HTREEITEM>& checkedItems);
+	void Get_All_File_Paths(LPCTSTR pstr);
+
+	void CopyFilesToFolder(std::vector<std::wstring> paths_in, std::wstring path_to);
 
 	afx_msg
 
-	void OnNMClickMfcshelltree1(NMHDR* pNMHDR, LRESULT* pResult);
-
-	TCHAR buffer[256];
-
-
-
 	CString search_string;
-	afx_msg void OnEnChangeEdit1();
-	CString path_to;
-	afx_msg void OnEnChangeMfceditbrowse3();
-
-	void SearchTrough();
-	void Get_All_File_Paths(LPCTSTR pstr);
-	
-	CArray<CString> all_Paths;
-	CArray<CString> all_files_paths;
+	std::vector<std::wstring> paths_in;
 
 	//copy btn
 	afx_msg void OnBnClickedButton1();
-	void CopyFilesToFolder();
 	bool SHCopy(std::wstring& from, std::wstring& to);
-	
-	
+
+	//error strings
+	CString KeywordError;
+	CString FolderError;
+	CString CheckingError;
+	CString CopyFailed;
+	CString CopySuccess;
 	
 	
 };
