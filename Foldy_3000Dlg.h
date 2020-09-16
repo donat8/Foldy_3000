@@ -3,8 +3,10 @@
 //
 
 #pragma once
+#include <numeric>
 #include <afxShellListCtrl.h>
 #include <string>
+#include <memory>
 #include <vector>
 
 
@@ -18,6 +20,7 @@ public:
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_FOLDY_3000_DIALOG };
+
 #endif
 
 	protected:

@@ -3,6 +3,7 @@
 //
 
 #include "pch.h"
+
 #include "framework.h"
 #include "Foldy_3000.h"
 #include "Foldy_3000Dlg.h"
@@ -10,14 +11,10 @@
 
 
 
-
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
+#pragma warning(disable : 4996)
 #endif
-
-
-
 
 // CAboutDlg dialog used for App About
 
@@ -323,30 +320,32 @@ bool CFoldy3000Dlg::SHCopy(std::wstring& to)
 	//ako zelimo fileove i foldere iz trazenog foldera ali bez kopiranja njega
 	//if (all_Paths.GetCount() > 0)
 	//	from += L"\\*";
-	int CopyFailed = 0;
+	using namespace std;
 
-	WCHAR tf[MAX_PATH + 1];
-	wcscpy_s(tf, MAX_PATH, to.c_str());
-	tf[lstrlenW(tf) + 1] = 0;
+	auto length = accumulate(begin(paths_in), end(paths_in), size_t(0),
+		[](size_t n, const wstring& s) { return n + 1 + s.length(); });
+
+	auto sf = make_unique<wchar_t[]>(1 + length);
+	auto p = sf.get();
+
+	//dodaje sve pathove u jedan wstring
+	for (const auto& s : paths_in) {
+		wcscpy(p, s.c_str());
+		p += s.length() + 1;
+	}
+	sf[length] = L'\0'; // finalni terminator, moze biti: *p = 0;
+
+	auto tf = make_unique<wchar_t[]>(2 + to.length());
+	wcscpy(tf.get(), to.c_str());
+	tf[to.length()] = L'\0';
 
 	SHFILEOPSTRUCT s = { 0 };
 	s.wFunc = FO_COPY;
 	s.fFlags = FOF_NOCONFIRMMKDIR;
-	s.pTo = tf;
+	s.pTo = tf.get();
+	s.pFrom = sf.get();
 
-	for (int i = 0; i < paths_in.size(); i++) {
-		WCHAR sf[MAX_PATH + 1];
-		wcscpy_s(sf, MAX_PATH, paths_in[i].c_str());
-		//dodaje jos jedan null prt na kraj
-		sf[lstrlenW(sf) + 1] = 0;
-		s.pFrom = sf;
-		if (SHFileOperation(&s))
-			CopyFailed += 1;
-	}
-	if (CopyFailed > 0) {
-		return false;
-	}
-	return true;
+	return !SHFileOperation(&s);
 }
 
 
