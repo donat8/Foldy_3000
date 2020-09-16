@@ -11,6 +11,8 @@
 #define CHECKING_ERROR                  104
 #define COPY_FAILED                     105
 #define COPY_SUCCESS                    106
+#define FOLDER_CREATION                 107
+#define FOLDER_CREATION_FAILED          108
 #define IDI_ICON1                       128
 #define IDR_MAINFRAME                   131
 #define IDC_MFCSHELLTREE1               1001

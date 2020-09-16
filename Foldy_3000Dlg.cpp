@@ -10,6 +10,8 @@
 
 
 
+
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -116,6 +118,8 @@ BOOL CFoldy3000Dlg::OnInitDialog()
 	CheckingError.LoadStringW(CHECKING_ERROR);
 	CopyFailed.LoadStringW(COPY_FAILED);
 	CopySuccess.LoadStringW(COPY_SUCCESS);
+	FolderCreated.LoadStringW(FOLDER_CREATION);
+	FolderIsntCreated.LoadStringW(FOLDER_CREATION_FAILED);
 
 	// TODO: Add extra initialization here
 
@@ -184,7 +188,7 @@ std::vector<HTREEITEM> CFoldy3000Dlg::GetCheckedItems(const CTreeCtrl& tree, std
 		UINT state = (tree.GetItemState(item, TVIS_STATEIMAGEMASK) >> 12) & 15;
 
 		// je li chekirano
-		if (state == 2) {
+		if (state == TVIS_SELECTED) {
 			checkedItems.push_back(item);
 		}
 		// pretrazuje djecu
@@ -255,15 +259,13 @@ void CFoldy3000Dlg::Get_All_File_Paths(LPCTSTR pstr)
 }
 
 //kopiranje u novi zadani folder
-void CFoldy3000Dlg::CopyFilesToFolder(std::vector<std::wstring> paths_in, std::wstring path_to) {
+void CFoldy3000Dlg::CopyFilesToFolder(std::wstring path_to) {
 
 	if (paths_in.empty())
 		SetDlgItemText(IDC_STATIC_SUCCESS, CopyFailed);
 	else {
-    	for (int i = 0; i < paths_in.size(); i++) {
-    		if(SHCopy(paths_in[i], path_to)==false)
-				SetDlgItemText(IDC_STATIC_SUCCESS, CopyFailed);
-    	}
+		if (SHCopy(path_to) == false)
+			SetDlgItemText(IDC_STATIC_SUCCESS, CopyFailed);
     	SetDlgItemText(IDC_EDIT1, L"");
 		SetDlgItemText(IDC_STATIC_SUCCESS, CopySuccess);
 	}
@@ -271,7 +273,8 @@ void CFoldy3000Dlg::CopyFilesToFolder(std::vector<std::wstring> paths_in, std::w
 
 // COPY button
 void CFoldy3000Dlg::OnBnClickedButton1()
-{	
+{		
+	SetDlgItemText(IDC_STATIC_FOLDER, L"");
 	//sprema path_to
 	CString path_to;
 	GetDlgItemTextW(IDC_MFCEDITBROWSE3, path_to);
@@ -290,41 +293,60 @@ void CFoldy3000Dlg::OnBnClickedButton1()
 		SetDlgItemText(IDC_STATIC_FOLDER, FolderError);	}
 	else if (search_string.IsEmpty())
 		SetDlgItemText(IDC_STATIC_KEYWORD, KeywordError);
+	else if (!CreateAFolder(path_to)) {
+		SetDlgItemText(IDC_STATIC_FOLDER, FolderIsntCreated);
+	}
 	else{
 		SetDlgItemText(IDC_STATIC_TREE, L"");
-		SetDlgItemText(IDC_STATIC_FOLDER, L""); 
 		SetDlgItemText(IDC_STATIC_KEYWORD, L"");
 		SearchTrough(checkedItems);
-		CopyFilesToFolder(paths_in, path_to_w);
+		CopyFilesToFolder(path_to_w);
 		paths_in.clear();
 	}
 }
 
-bool CFoldy3000Dlg::SHCopy(std::wstring& from, std::wstring& to)
+bool CFoldy3000Dlg::CreateAFolder(CString path_to){
+
+	if (CreateDirectory(path_to, NULL)) {
+		SetDlgItemText(IDC_STATIC_FOLDER, FolderCreated);
+		return true;
+	}
+	//ako je neki drugi error u pitanju 
+	else if (GetLastError() != ERROR_ALREADY_EXISTS)
+		return false;
+	//folder vec postoji
+	return true;
+}
+
+bool CFoldy3000Dlg::SHCopy(std::wstring& to)
 {
 	//ako zelimo fileove i foldere iz trazenog foldera ali bez kopiranja njega
 	//if (all_Paths.GetCount() > 0)
 	//	from += L"\\*";
-	
-	WCHAR sf[MAX_PATH + 1];
-	WCHAR tf[MAX_PATH + 1];
+	int CopyFailed = 0;
 
-	wcscpy_s(sf, MAX_PATH, from.c_str());
+	WCHAR tf[MAX_PATH + 1];
 	wcscpy_s(tf, MAX_PATH, to.c_str());
-	
-	sf[lstrlenW(sf) + 1] = 0;
 	tf[lstrlenW(tf) + 1] = 0;
 
 	SHFILEOPSTRUCT s = { 0 };
 	s.wFunc = FO_COPY;
 	s.fFlags = FOF_NOCONFIRMMKDIR;
 	s.pTo = tf;
-	s.pFrom = sf;
-	if (SHFileOperation(&s) == 0)
-		return true;
-	else
+
+	for (int i = 0; i < paths_in.size(); i++) {
+		WCHAR sf[MAX_PATH + 1];
+		wcscpy_s(sf, MAX_PATH, paths_in[i].c_str());
+		//dodaje jos jedan null prt na kraj
+		sf[lstrlenW(sf) + 1] = 0;
+		s.pFrom = sf;
+		if (SHFileOperation(&s))
+			CopyFailed += 1;
+	}
+	if (CopyFailed > 0) {
 		return false;
-	return false;
+	}
+	return true;
 }
 
 

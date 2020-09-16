@@ -44,7 +44,9 @@ public:
 	void SearchTrough(std::vector<HTREEITEM>& checkedItems);
 	void Get_All_File_Paths(LPCTSTR pstr);
 
-	void CopyFilesToFolder(std::vector<std::wstring> paths_in, std::wstring path_to);
+	void CopyFilesToFolder(std::wstring path_to);
+
+	//void CopyFilesToFolder(std::vector<std::wstring> paths_in, std::wstring path_to);
 
 	afx_msg
 
@@ -53,7 +55,9 @@ public:
 
 	//copy btn
 	afx_msg void OnBnClickedButton1();
-	bool SHCopy(std::wstring& from, std::wstring& to);
+	bool CreateAFolder(CString path_to);
+	bool SHCopy(std::wstring& to);
+	//bool SHCopy(std::wstring& from, std::wstring& to);
 
 	//error strings
 	CString KeywordError;
@@ -61,6 +65,9 @@ public:
 	CString CheckingError;
 	CString CopyFailed;
 	CString CopySuccess;
+	CString FolderCreated;
+	CString FolderIsntCreated;
+	
 	
 	
 };
